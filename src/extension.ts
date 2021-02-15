@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { getRelated } from './resolver';
+import { buildLocale } from './locale';
 import * as fs from 'fs';
 
 const getLocale = () => {
@@ -22,7 +23,7 @@ const getLocale = () => {
     if (fs.existsSync(localeFilename)) {
       openFile(localeFileUri);
     } else {
-      createPrompt(localeFileUri, createFile);
+      createPrompt(chosenLocale, localeFileUri, createFile);
     }
   });
 };
@@ -31,16 +32,28 @@ const openFile = (fileUri: vscode.Uri) => {
   vscode
     .workspace
     .openTextDocument(fileUri)
-    .then(vscode.window.showTextDocument);
-};
+    .then(document => vscode.window.showTextDocument(document))
+}
 
-const createFile = (fileUri: vscode.Uri) => {
+const openAndStubFile = (locale: string, fileUri: vscode.Uri) => {
+  vscode
+    .workspace
+    .openTextDocument(fileUri)
+    .then((document) => {
+      vscode.window.showTextDocument(document, 1, false)
+        .then(editor => {
+          editor.edit(edit => edit.insert(new vscode.Position(0, 0), buildLocale(locale, fileUri.fsPath)))
+        })
+    })
+}
+
+const createFile = (locale: string, fileUri: vscode.Uri) => {
   const workspaceEdit = new vscode.WorkspaceEdit();
   workspaceEdit.createFile(fileUri, { ignoreIfExists: true });
-  vscode.workspace.applyEdit(workspaceEdit).then(() => openFile(fileUri));
+  vscode.workspace.applyEdit(workspaceEdit).then(() => openAndStubFile(locale, fileUri));
 };
 
-const createPrompt = (fileUri: vscode.Uri, action: any) => {
+const createPrompt = (locale: string, fileUri: vscode.Uri, action: any) => {
     const items = [
       'Yes',
       'No'
@@ -51,7 +64,7 @@ const createPrompt = (fileUri: vscode.Uri, action: any) => {
 
     vscode.window.showQuickPick(items, options)
       .then((response) => {
-        if (response === 'Yes') { action(fileUri); }
+        if (response === 'Yes') { action(locale, fileUri); }
       });
 };
 
