@@ -5,7 +5,7 @@ import { getRelated } from './resolver';
 import { buildLocale } from './locale';
 import * as fs from 'fs';
 
-const getLocale = () => {
+const getLocale = async () => {
   const currentOpenFile = vscode.window.activeTextEditor?.document.fileName!;
 
   const options: vscode.InputBoxOptions = {
@@ -14,46 +14,56 @@ const getLocale = () => {
     placeHolder: 'en'
   };
 
-  vscode.window.showInputBox(options).then(chosenLocale => {
-    if (!chosenLocale) { return; }
+  const chosenLocale = await vscode.window.showInputBox(options)
+  if (!chosenLocale) { return }
 
-    const localeFilename = getRelated(currentOpenFile, chosenLocale);
-    const localeFileUri = vscode.Uri.file(localeFilename);
+  const localeFilename = getRelated(currentOpenFile, chosenLocale);
+  const localeFileUri = vscode.Uri.file(localeFilename);
 
-    if (fs.existsSync(localeFilename)) {
-      openFile(localeFileUri);
-    } else {
-      createPrompt(chosenLocale, localeFileUri, createFile);
+  if (fs.existsSync(localeFilename)) {
+    openFile(localeFileUri);
+  } else {
+    promptUserToCreateFile(chosenLocale, localeFileUri, createFile);
+  }
+};
+
+const openFile = async (fileUri: vscode.Uri) => {
+  try {
+    const document = await vscode.workspace.openTextDocument(fileUri);
+    vscode.window.showTextDocument(document);
+  } catch (error) {
+    vscode.window.showWarningMessage(error);
+  }
+}
+
+const openAndStubFile = async (locale: string, fileUri: vscode.Uri) => {
+  try {
+    const document = await vscode.workspace.openTextDocument(fileUri);
+    const editor = await vscode.window.showTextDocument(document);
+    editor.edit(edit => insertLocaleToFile(edit, locale, fileUri.fsPath));
+  } catch (error) {
+    vscode.window.showWarningMessage(error);
+  }
+}
+
+const insertLocaleToFile = (edit: vscode.TextEditorEdit, locale: string, path: string) => {
+  edit.insert(new vscode.Position(0, 0), buildLocale(locale, path))
+}
+
+const createFile = async (locale: string, fileUri: vscode.Uri) => {
+  try {
+    const workspaceEdit = new vscode.WorkspaceEdit();
+    workspaceEdit.createFile(fileUri, { ignoreIfExists: true });
+    const editWasApplied = await vscode.workspace.applyEdit(workspaceEdit)
+    if (editWasApplied) {
+      openAndStubFile(locale, fileUri)
     }
-  });
+  } catch (error) {
+    vscode.window.showWarningMessage(error);
+  }
 };
 
-const openFile = (fileUri: vscode.Uri) => {
-  vscode
-    .workspace
-    .openTextDocument(fileUri)
-    .then(document => vscode.window.showTextDocument(document))
-}
-
-const openAndStubFile = (locale: string, fileUri: vscode.Uri) => {
-  vscode
-    .workspace
-    .openTextDocument(fileUri)
-    .then((document) => {
-      vscode.window.showTextDocument(document, 1, false)
-        .then(editor => {
-          editor.edit(edit => edit.insert(new vscode.Position(0, 0), buildLocale(locale, fileUri.fsPath)))
-        })
-    })
-}
-
-const createFile = (locale: string, fileUri: vscode.Uri) => {
-  const workspaceEdit = new vscode.WorkspaceEdit();
-  workspaceEdit.createFile(fileUri, { ignoreIfExists: true });
-  vscode.workspace.applyEdit(workspaceEdit).then(() => openAndStubFile(locale, fileUri));
-};
-
-const createPrompt = (locale: string, fileUri: vscode.Uri, action: any) => {
+const promptUserToCreateFile = async (locale: string, fileUri: vscode.Uri, createFunction: CallableFunction) => {
     const items = [
       'Yes',
       'No'
@@ -62,10 +72,10 @@ const createPrompt = (locale: string, fileUri: vscode.Uri, action: any) => {
       placeHolder: `Create ${fileUri.fsPath}?`
     }
 
-    vscode.window.showQuickPick(items, options)
-      .then((response) => {
-        if (response === 'Yes') { action(locale, fileUri); }
-      });
+    const response = await vscode.window.showQuickPick(items, options)
+    if (response === 'Yes') {
+      createFunction(locale, fileUri)
+    }
 };
 
 // this method is called when your extension is activated
