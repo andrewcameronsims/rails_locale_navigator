@@ -1,22 +1,56 @@
-export const getRelated = (file: string, locale: string) => {
-    return codeToLocale(file, locale);
+
+import * as vscode from 'vscode';
+
+const CONVENTIONAL_MODULES = [
+  'views',
+  'mailers',
+  'models',
+  'controllers'
+];
+
+const LOCALE_REGEX = /.+\..+\.yml/;
+
+export const getRelated = (filename: string, locale: string): string => {
+    if (isLocale(filename)) {
+      return localeToCode(filename);
+    } else {
+      return codeToLocale(filename, locale);
+    }
 };
 
-const codeToLocale = (file: string, locale: string) => {
+const isLocale = (filename: string): boolean => {
+  return LOCALE_REGEX.test(filename);
+};
+
+const codeToLocale = (filename: string, locale: string): string => {
   const viewRegex = /erb$|haml$|slim$/;
   const localeExtension = `.${locale}.yml`;
 
-  const isViewFile = file.match(viewRegex);
+  const isViewFile = filename.match(viewRegex);
   if (isViewFile) {
-    return file
+    return filename
             .replace('/app/', '/config/locales/')
             .replace(/\..+\.haml/, localeExtension)
             .replace(/\..+\.erb/, localeExtension)
             .replace(/\..+\.slim/, localeExtension);
   }
 
-  file = file.replace('.rb', localeExtension);
-  file = file.replace('/extensions', '');
+  filename = filename.replace('.rb', localeExtension);
+  filename = filename.replace('/extensions', '');
 
-  return file.replace('/app/', '/config/locales/');
+  return filename.replace('/app/', '/config/locales/');
+};
+
+const localeToCode = (filename: string) => {
+  const modules = filename.split('/');
+
+  if (CONVENTIONAL_MODULES.includes(filename)) {
+    return filename.replace('/app/', '/config/locales/');
+  } else {
+    return '';
+  }
+};
+
+const unconventionalModulePath = (module: string) => {
+  vscode.workspace.findFiles(`app/**/${module}/**`);
 };

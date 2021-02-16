@@ -1,4 +1,4 @@
-import * as vscode from 'vscode'
+import * as vscode from 'vscode';
 import { buildLocale } from './locale';
 
 export const openFile = async (fileUri: vscode.Uri) => {
@@ -8,19 +8,19 @@ export const openFile = async (fileUri: vscode.Uri) => {
   } catch (error) {
     vscode.window.showWarningMessage(error);
   }
-}
+};
 
 const insertLocaleToFile = (edit: vscode.TextEditorEdit, locale: string, path: string) => {
-  edit.insert(new vscode.Position(0, 0), buildLocale(locale, path))
-}
+  edit.insert(new vscode.Position(0, 0), buildLocale(locale, path));
+};
 
 export const createFile = async (locale: string, fileUri: vscode.Uri) => {
   try {
     const workspaceEdit = new vscode.WorkspaceEdit();
     workspaceEdit.createFile(fileUri, { ignoreIfExists: true });
-    const editWasApplied = await vscode.workspace.applyEdit(workspaceEdit)
+    const editWasApplied = await vscode.workspace.applyEdit(workspaceEdit);
     if (editWasApplied) {
-      openAndStubFile(locale, fileUri)
+      openAndStubFile(locale, fileUri);
     }
   } catch (error) {
     vscode.window.showWarningMessage(error);
@@ -34,11 +34,11 @@ export const promptUserToCreateFile = async (locale: string, fileUri: vscode.Uri
     ];
     const options = {
       placeHolder: `Create ${fileUri.fsPath}?`
-    }
+    };
 
-    const response = await vscode.window.showQuickPick(items, options)
+    const response = await vscode.window.showQuickPick(items, options);
     if (response === 'Yes') {
-      createFunction(locale, fileUri)
+      createFunction(locale, fileUri);
     }
 };
 
@@ -50,4 +50,4 @@ const openAndStubFile = async (locale: string, fileUri: vscode.Uri) => {
   } catch (error) {
     vscode.window.showWarningMessage(error);
   }
-}
+};
