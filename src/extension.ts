@@ -6,24 +6,25 @@ import { getRelated } from './resolver';
 import { openFile, createFile, promptUserToCreateFile } from './fs'
 
 const getLocale = async () => {
-  const currentOpenFile = vscode.window.activeTextEditor?.document.fileName!;
+  try {
+    const currentOpenFile = vscode.window.activeTextEditor?.document.fileName!;
+    const options: vscode.InputBoxOptions = {
+      value: 'en',
+      prompt: 'Locale: ',
+      placeHolder: 'en'
+    };
+    const chosenLocale = await vscode.window.showInputBox(options)
+    if (!chosenLocale) { return }
+    const localeFilename = getRelated(currentOpenFile, chosenLocale);
+    const localeFileUri = vscode.Uri.file(localeFilename);
 
-  const options: vscode.InputBoxOptions = {
-    value: 'en',
-    prompt: 'Locale: ',
-    placeHolder: 'en'
-  };
-
-  const chosenLocale = await vscode.window.showInputBox(options)
-  if (!chosenLocale) { return }
-
-  const localeFilename = getRelated(currentOpenFile, chosenLocale);
-  const localeFileUri = vscode.Uri.file(localeFilename);
-
-  if (fs.existsSync(localeFilename)) {
-    openFile(localeFileUri);
-  } else {
-    promptUserToCreateFile(chosenLocale, localeFileUri, createFile);
+    if (fs.existsSync(localeFilename)) {
+      openFile(localeFileUri);
+    } else {
+      promptUserToCreateFile(chosenLocale, localeFileUri, createFile);
+    }
+  } catch (error) {
+    vscode.window.showErrorMessage(error)
   }
 };
 
