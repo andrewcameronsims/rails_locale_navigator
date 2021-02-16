@@ -15,7 +15,7 @@ const codeToLocale = (file: string, locale: string) => {
             .replace(/\..+\.slim/, localeExtension);
   }
 
-  file = file.replace('.rb', `.${locale}.yml`);
+  file = file.replace('.rb', localeExtension);
   file = file.replace('/extensions', '');
 
   return file.replace('/app/', '/config/locales/');
