@@ -18,7 +18,7 @@ const getLocale = async () => {
       const chosenLocale = await vscode.window.showInputBox(options);
       if (!chosenLocale) { return; }
 
-      const localeFilename = getRelated(currentOpenFile, chosenLocale);
+      const localeFilename = await getRelated(currentOpenFile, chosenLocale);
       const localeFileUri = vscode.Uri.file(localeFilename);
 
       if (fs.existsSync(localeFilename)) {

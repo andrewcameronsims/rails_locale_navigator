@@ -10,11 +10,12 @@ const CONVENTIONAL_MODULES = [
 
 const LOCALE_REGEX = /.+\..+\.yml/;
 
-export const getRelated = (filename: string, locale: string): string => {
+export const getRelated = async (filename: string, locale: string): Promise<string> => {
     if (isLocale(filename)) {
-      return localeToCode(filename);
+      const destinationPath = await navigateFromLocale(filename);
+      return destinationPath
     } else {
-      return codeToLocale(filename, locale);
+      return navigateToLocale(filename, locale);
     }
 };
 
@@ -22,7 +23,7 @@ const isLocale = (filename: string): boolean => {
   return LOCALE_REGEX.test(filename);
 };
 
-const codeToLocale = (filename: string, locale: string): string => {
+const navigateToLocale = (filename: string, locale: string): string => {
   const viewRegex = /erb$|haml$|slim$/;
   const localeExtension = `.${locale}.yml`;
 
@@ -41,16 +42,17 @@ const codeToLocale = (filename: string, locale: string): string => {
   return filename.replace('/app/', '/config/locales/');
 };
 
-const localeToCode = (filename: string) => {
-  const modules = filename.split('/');
+const navigateFromLocale = async (filename: string): Promise<string> => {
+  const appPath = filename.split('/locales')[1].split(/\..+\.yml/)[0]
+  const searchTerm = ('app' + appPath.replace(/\//g, '/**/') + '*')
+  const foundUris = await vscode.workspace.findFiles(searchTerm)
+  const candidates = foundUris.filter((uri) => {
+    return uri.fsPath !== filename
+  })
 
-  if (CONVENTIONAL_MODULES.includes(filename)) {
-    return filename.replace('/app/', '/config/locales/');
+  if (candidates.length == 1) {
+    return candidates[0].fsPath;
   } else {
-    return '';
+    return ''
   }
-};
-
-const unconventionalModulePath = (module: string) => {
-  vscode.workspace.findFiles(`app/**/${module}/**`);
 };
