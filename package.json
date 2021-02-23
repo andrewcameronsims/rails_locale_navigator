@@ -1,29 +1,29 @@
 {
-	"name": "gotolocale",
-	"publisher": "acsims",
-	"displayName": "GoToLocale",
-	"description": "Shortcuts to open or create Rails locale files",
-	"version": "0.0.1",
+	"name": "localenavigator",
+	"publisher": "andrewcameronsims",
+	"displayName": "Rails Locale Navigator",
+	"description": "Command to open or create Rails locale files",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.52.0"
 	},
 	"categories": [
-		"Other"
+		"Keymaps"
 	],
 	"activationEvents": [
-		"onCommand:gotolocale.railsLocale"
+		"onCommand:localenavigator.railsLocale"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "gotolocale.railsLocale",
+				"command": "localenavigator.railsLocale",
 				"title": "Rails Locale"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "gotolocale.railsLocale",
+				"command": "localenavigator.railsLocale",
 				"key": "ctrl+alt+l",
 				"mac": "shift+cmd+l"
 			}

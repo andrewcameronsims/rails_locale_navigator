@@ -1,13 +1,6 @@
 
 import * as vscode from 'vscode';
 
-const CONVENTIONAL_MODULES = [
-  'views',
-  'mailers',
-  'models',
-  'controllers'
-];
-
 const LOCALE_REGEX = /.+\..+\.yml/;
 
 export const getRelated = async (filename: string, locale: string): Promise<string> => {

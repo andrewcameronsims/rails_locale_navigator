@@ -1,7 +1,11 @@
 # Locale Navigator
 
-1. Download VSCE `npm i -g vsce`
-2. `vsce package` in the root of the project
-3. Load the `.vsix` by using the Install from VSIX in the Extensions menu of VSCode
+This VSCode extension adds a command which allows you to quickly switch between code and translation files in Ruby on Rails.
 
-CMD+SHIFT+L when in a Rails file to go to existing locale or create a new one.
+This allows you to create translations in any of the locales supported by I18n. You will be asked which locale you intend when you run the command.
+
+If no locale file exists for the code it will create it and stub out the initial `.yml` that is necessary for the file.
+
+## To use
+
+Use `cmd + shift + l` on MacOS or `ctrl + shift + l` on Windows.
